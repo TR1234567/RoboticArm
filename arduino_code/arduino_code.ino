@@ -3,41 +3,30 @@ boolean toggle1 = 0;
 ServoTimer2 myservo1;  // create servo object to control a servo
 ServoTimer2 myservo2;
 
-int formmin = 30;
-int formmax = 160;
-int tomin = 770; 
-int tomax = 2200; 
+int formmin = 0;
+int formmax = 130;
+int tomin = 770;
+int tomax = 2200;
 
-int target_base_step = 0;
-int current_base_step = 0; 
+int target_base_step = map(90,0,360,0,3200);
+int current_base_step = map(90,0,360,0,3200);
 int step_distance = 0;
-int joint1_angle = map(40,formmin,formmax,tomin,tomax);
-int joint2_angle = map(140,formmin,formmax,tomin,tomax);
-
-int end_state = 0;
-int currnt_end_state;
-
-int stab = 1;
-int stepmax = 50;
-int stepcount = 0;
-
-float freq = 1;
+int joint1_angle = map(0,formmin,formmax,tomin,tomax);
+int joint2_angle = map(90,formmin,formmax,tomin,tomax);
 
 int incoming[4];
 
-
+int motorSpeed = 1;     //variable to set stepper speed
+int motordistance = 195;
 
 //set pin 
 int motorPin1 = 8;// Blue   - 28BYJ48 pin 1
 int motorPin2 = 9;// Pink   - 28BYJ48 pin 2
 int motorPin3 = 10;// Yellow - 28BYJ48 pin 3
 int motorPin4 = 11;// Orange - 28BYJ48 pin 4
-int motorSpeed = 1;     //variable to set stepper speed
-int motordistance = 650;
 
 int servo1 = 5;
 int servo2 = 6;
-
 
 int STEP = 4;
 int DIR = 3;
@@ -124,8 +113,10 @@ void loop(){
     {
       Serial.print(" base :");
       int base = incoming[2]+incoming[3];
-      Serial.println(base);
+      Serial.print(base);
       target_base_step = map(base,0,360,0,3200); //change angle to step count
+      Serial.print(" map :");
+      Serial.println(target_base_step);
       
     }
     
@@ -157,6 +148,23 @@ void loop(){
     {
       clockwise();
     }
+    
+    target_base_step = map(90,0,360,0,3200);
+    if(current_base_step > target_base_step)
+    {
+      digitalWrite(DIR,HIGH);
+      step_distance = current_base_step - target_base_step;
+    }
+    if(current_base_step < target_base_step)
+    {
+      digitalWrite(DIR,LOW);
+      step_distance = target_base_step - current_base_step ;
+    }
+    current_base_step = target_base_step;
+    joint1_angle = map(0,formmin,formmax,tomin,tomax);;
+    joint2_angle = map(90,formmin,formmax,tomin,tomax);;
+    myservo1.write(joint1_angle);
+    myservo2.write(joint2_angle);
   }
   
 
@@ -263,40 +271,4 @@ void clockwise(){
   digitalWrite(motorPin2, LOW);
   digitalWrite(motorPin1, HIGH);
   delay(motorSpeed);
-}
-int setModeNEMA(int MODE,int MS0,int MS1,int MS2)
-{
-  pinMode(MS0, OUTPUT);
-  pinMode(MS1, OUTPUT);
-  pinMode(MS2, OUTPUT);
-  if(MODE==0){ //FULL STEP
-    digitalWrite(MS0,LOW);
-    digitalWrite(MS1,LOW);
-    digitalWrite(MS2,LOW);
-  }
-  if(MODE==1){ //HALF STEP
-    digitalWrite(MS0,HIGH);
-    digitalWrite(MS1,LOW);
-    digitalWrite(MS2,LOW);
-  }
-  if(MODE==2){ // QUARTER STEP
-    digitalWrite(MS0,LOW);
-    digitalWrite(MS1,HIGH);
-    digitalWrite(MS2,LOW);
-  }
-  if(MODE==3){ //EIGHTH STEP
-    digitalWrite(MS0,HIGH);
-    digitalWrite(MS1,HIGH);
-    digitalWrite(MS2,LOW);
-  }
-  if(MODE==4){ //SIXTEENTH STEP
-    digitalWrite(MS0,LOW);
-    digitalWrite(MS1,LOW);
-    digitalWrite(MS2,HIGH);
-  }
-  if(MODE==5){ //THIRTY SECOND STEP
-    digitalWrite(MS0,HIGH);
-    digitalWrite(MS1,LOW);
-    digitalWrite(MS2,HIGH);
-  }
 }
